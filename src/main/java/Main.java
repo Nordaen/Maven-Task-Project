@@ -26,7 +26,7 @@ public class Main {
         StringBuffer responce = new StringBuffer();
         responce = GetData.RetrieveData(url+answer+FORMAT+API);
 
-        String jsonString = ObjectBuilder.BuildObject(responce);
+        String jsonString = JsonBuilder.Build(responce);
         Writer.Write(jsonString);
     }
 }
@@ -137,8 +137,8 @@ class GetData{
 
     }
 }
-class ObjectBuilder{
-    public static String BuildObject(StringBuffer responce){
+class JsonBuilder{
+    public static String Build(StringBuffer responce){
         Gson gson = new Gson();
         String jsonString = gson.toJson(responce);
 
