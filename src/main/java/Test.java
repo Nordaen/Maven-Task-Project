@@ -1,6 +1,7 @@
 import com.google.gson.*;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -9,14 +10,122 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 
 public class Test {
     public  void Launch() throws IOException {
-    String url = "http://api.openweathermap.org/data/2.5/weather?q=London";
+        String url = "http://api.openweathermap.org/data/2.5/weather?q=";
         String API = "&appid=c874ec2627d75d6c96be9048eb67c519";
+        String FORMAT = "&units=metric";
 
-        URL obj = new URL(url+API);
+
+        System.out.println("What city's weather you would like to know?");
+        Scanner ins = new Scanner(System.in);
+        String answer = ins.nextLine();
+
+        StringBuffer responce = new StringBuffer();
+        responce = GetData.RetrieveData(url+answer+FORMAT+API);
+
+       String jsonString = ObjectBuilder.BuildObject(responce);
+        Writer.Write(jsonString);
+
+
+    }
+
+
+}
+
+ class CityData{
+    private String name;
+    private double temp;
+    private double pressure;
+    private double humidity;
+    private double lonCoord;
+    private double latCoord;
+    public CityData(String name, double temp, double pressure, double humidity, double lonCoord, double latCoord) {
+        this.name = name;
+        this.temp = temp;
+        this.pressure = pressure;
+        this.humidity = humidity;
+        this.lonCoord = lonCoord;
+        this.latCoord = latCoord;
+    }
+
+    public double getHumidity() {
+        return humidity;
+    }
+
+    public void setHumidity(double humidity) {
+        this.humidity = humidity;
+    }
+
+    public double getLonCoord() {
+        return lonCoord;
+    }
+
+    public void setLonCoord(double lonCoord) {
+        this.lonCoord = lonCoord;
+    }
+
+    public double getLatCoord() {
+        return latCoord;
+    }
+
+    public void setLatCoord(double latCoord) {
+        this.latCoord = latCoord;
+    }
+
+
+    public double getTemp() {
+        return temp;
+    }
+
+    public void setTemp(double temp) {
+        this.temp = temp;
+    }
+
+    public double getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(double pressure) {
+        this.pressure = pressure;
+    }
+
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+}
+ class Writer{
+    public static void Write(String str) throws IOException {
+        try(FileWriter writer = new FileWriter("D:\\data.txt", true)){
+            writer.write(str);
+        }
+
+    }
+}
+class GetData{
+    public static StringBuffer RetrieveData(String url) throws IOException {
+        URL obj = new URL(url);
         HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
 
         connection.setRequestMethod("GET");
@@ -29,71 +138,37 @@ public class Test {
             responce.append(inputLine);
         }
         in.close();
+        return  responce;
 
-
+    }
+}
+class ObjectBuilder{
+    public static String BuildObject(StringBuffer responce){
         Gson gson = new Gson();
         String jsonString = gson.toJson(responce);
-        System.out.println(jsonString);
+
 
         String pressure = gson.fromJson(jsonString,String.class);
 
         JsonObject jsonObject = new JsonParser().parse(responce.toString()).getAsJsonObject();
 
-         System.out.println();
-        String info =jsonObject.get("main").getAsString();
-        JsonElement jsobject = JsonElement.get("main").getAsString();
+        JsonObject jsonMain,jsonCoord;
 
-        System.out.println();
-
+        jsonMain = jsonObject.get("main").getAsJsonObject();
+        jsonCoord = jsonObject.get("coord").getAsJsonObject();
 
 
+        CityData cData = new CityData(jsonObject.get("name").getAsString(),
+                jsonMain.get("temp").getAsDouble(),
+                jsonMain.get("pressure").getAsDouble(),
+                jsonMain.get("humidity").getAsDouble(),
+                jsonCoord.get("lon").getAsDouble(),
+                jsonCoord.get("lat").getAsDouble());
+        System.out.println("The city is: " + cData.getName() +
+                " coordinates is: lon " + cData.getLonCoord()+
+                " lan " + cData.getLatCoord());
 
-        System.out.println(responce.toString());
-
-
+        jsonString = gson.toJson(cData);
+        return jsonString;
     }
-
-
-    public static class CityData{
-        private String name;
-        private int temp;
-        private int pressure;
-        private int humidity;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getTemp() {
-            return temp;
-        }
-
-        public void setTemp(int temp) {
-            this.temp = temp;
-        }
-
-        public int getPressure() {
-            return pressure;
-        }
-
-        public void setPressure(int pressure) {
-            this.pressure = pressure;
-        }
-
-        public int getHumidity() {
-            return humidity;
-        }
-
-        public void setHumidity(int humidity) {
-            this.humidity = humidity;
-        }
-    }
-    public static class TestPars{
-        double temp;
-    }
-
 }
